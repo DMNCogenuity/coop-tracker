@@ -1,0 +1,1512 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CoOp Value Creation Tracker</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.11.0/dist/tabler-icons.min.css">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f8f8f7;color:#1a1a18;font-size:14px;line-height:1.5}
+.app{max-width:1100px;margin:0 auto;padding:1.5rem}
+h1{font-size:18px;font-weight:500;margin-bottom:1.25rem;color:#1a1a18}
+.tabs{display:flex;gap:4px;margin-bottom:1.5rem;border-bottom:1px solid #e0dfd7}
+.tab{padding:8px 18px;font-size:13px;cursor:pointer;border:none;background:none;color:#888;border-bottom:2px solid transparent;margin-bottom:-1px;transition:color .15s}
+.tab.active{color:#1a1a18;border-bottom:2px solid #1a1a18;font-weight:500}
+.tab:hover:not(.active){color:#1a1a18}
+.view{display:none}.view.active{display:block}
+
+.toolbar{display:flex;gap:8px;margin-bottom:1rem;align-items:center;flex-wrap:wrap}
+.toolbar input[type=text]{font-size:13px;padding:6px 10px;height:32px;border:1px solid #d0cfc7;border-radius:8px;background:#fff;color:#1a1a18;outline:none;width:160px}
+.toolbar input[type=text]:focus{border-color:#888}
+.toolbar select{font-size:13px;padding:6px 10px;height:32px;border:1px solid #d0cfc7;border-radius:8px;background:#fff;color:#1a1a18;cursor:pointer}
+.btn{font-size:13px;padding:6px 12px;height:32px;cursor:pointer;border:1px solid #c8c7bf;background:#fff;color:#1a1a18;border-radius:8px;display:inline-flex;align-items:center;gap:5px}
+.btn:hover{background:#f0efea}
+.btn-primary{background:#1a1a18;color:#fff;border-color:#1a1a18}
+.btn-primary:hover{opacity:.85}
+.btn-sm{height:28px;font-size:12px;padding:4px 10px}
+
+.init-list{display:flex;flex-direction:column;gap:8px}
+.init-card{background:#fff;border:1px solid #e0dfd7;border-radius:12px;overflow:hidden}
+.init-header{display:flex;align-items:center;gap:10px;padding:10px 14px;cursor:pointer;user-select:none}
+.init-header:hover{background:#fafaf8}
+.rag{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.rag-green{background:#5a8a2f}
+.rag-amber{background:#c07a10}
+.rag-red{background:#b83333}
+.rag-steady{background:#888}
+.init-title{flex:1;font-size:13px;font-weight:500;color:#1a1a18}
+.init-meta{display:flex;gap:5px;align-items:center;flex-wrap:wrap}
+.badge{font-size:11px;padding:2px 8px;border-radius:99px;font-weight:500;white-space:nowrap}
+.badge-portco{background:#e4effa;color:#1050a0}
+.badge-member{background:#e8f5e0;color:#2d6010}
+.badge-vcp{background:#edeefe;color:#3a3690}
+.badge-upcoming{background:#f0efe8;color:#5a5952}
+.badge-in-process{background:#dcf0e8;color:#0d6045}
+.badge-wrapping-up{background:#faeada;color:#7a4208}
+.badge-completed{background:#e4f0da;color:#2d6010}
+.badge-vendor{background:#faeada;color:#7a4208}
+.chevron{font-size:14px;color:#888;transition:transform .15s}
+.chevron.open{transform:rotate(180deg)}
+
+.init-body{display:none;border-top:1px solid #e8e7df;padding:14px;flex-direction:column;gap:14px}
+.init-body.open{display:flex}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.field{display:flex;flex-direction:column;gap:3px}
+.field label{font-size:11px;color:#888;text-transform:uppercase;letter-spacing:.04em}
+.field-val{font-size:13px;color:#1a1a18}
+
+.notes-log{background:#f8f8f5;border:1px solid #e8e7df;border-radius:8px;padding:10px;max-height:200px;overflow-y:auto;display:flex;flex-direction:column;gap:8px}
+.note-entry{font-size:12px}
+.note-date{color:#888;font-weight:500;margin-bottom:3px;font-size:11px}
+.note-text{color:#1a1a18;line-height:1.5;margin-bottom:2px}
+.note-divider{border:none;border-top:1px solid #e8e7df;margin:6px 0}
+
+.log-section{background:#f4f4f0;border-radius:8px;padding:12px;display:flex;flex-direction:column;gap:8px}
+.log-section label{font-size:11px;color:#888;text-transform:uppercase;letter-spacing:.04em}
+.log-section textarea{font-size:13px;padding:6px 8px;border:1px solid #d0cfc7;border-radius:8px;background:#fff;color:#1a1a18;width:100%;resize:vertical;min-height:56px;outline:none}
+.log-section textarea:focus{border-color:#888}
+.log-actions{display:flex;gap:8px;justify-content:flex-end}
+
+.empty-state{text-align:center;padding:3rem 1rem;color:#aaa;font-size:13px}
+
+.pm-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem}
+.pm-date{font-size:12px;color:#888}
+.pm-wrap{overflow-x:auto}
+.pm-grid{width:100%;border-collapse:collapse;font-size:12px}
+.pm-grid th{font-size:11px;font-weight:500;color:#888;text-align:left;padding:6px 8px;border-bottom:1px solid #e0dfd7;white-space:nowrap;background:#f8f8f5}
+.pm-grid td{vertical-align:top;padding:7px 8px;border-bottom:1px solid #e8e7df}
+.pm-portco{font-weight:500;font-size:12px;color:#1a1a18;white-space:nowrap;min-width:90px}
+.pm-cell{display:flex;flex-direction:column;gap:4px;min-width:110px}
+.pm-item{display:flex;align-items:flex-start;gap:5px;font-size:11px;color:#1a1a18;line-height:1.3}
+.pm-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;margin-top:2px}
+.pm-empty{color:#ccc;font-size:11px}
+.legend{display:flex;gap:16px;margin-top:12px;flex-wrap:wrap}
+.legend-item{display:flex;align-items:center;gap:5px;font-size:11px;color:#888}
+
+.cap-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:10px}
+.cap-card{background:#fff;border:1px solid #e0dfd7;border-radius:12px;padding:14px}
+.cap-name{font-size:14px;font-weight:500;margin-bottom:6px}
+.cap-counts{font-size:11px;color:#888;margin-bottom:8px}
+.cap-bar-bg{background:#e8e7df;border-radius:99px;height:5px;margin-bottom:10px;overflow:hidden}
+.cap-bar{height:5px;border-radius:99px}
+.cap-bar-green{background:#5a8a2f}
+.cap-bar-amber{background:#c07a10}
+.cap-bar-red{background:#b83333}
+.cap-items{display:flex;flex-direction:column;gap:4px}
+.cap-item{font-size:11px;display:flex;align-items:flex-start;gap:5px;color:#555;line-height:1.3}
+.cap-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;margin-top:2px}
+
+.modal-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.4);z-index:200;display:flex;align-items:flex-start;justify-content:center;padding:3rem 1rem;overflow-y:auto}
+.modal{background:#fff;border-radius:14px;border:1px solid #e0dfd7;width:100%;max-width:580px;padding:22px}
+.modal-title{font-size:15px;font-weight:500;margin-bottom:16px;display:flex;justify-content:space-between;align-items:center}
+.modal-close{cursor:pointer;font-size:18px;color:#888;background:none;border:none;line-height:1}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:4px}
+.form-field{display:flex;flex-direction:column;gap:4px}
+.form-field.full{grid-column:1/-1}
+.form-field label{font-size:11px;color:#888;text-transform:uppercase;letter-spacing:.04em}
+.form-field input,.form-field select,.form-field textarea{font-size:13px;padding:7px 9px;border:1px solid #d0cfc7;border-radius:8px;background:#fff;color:#1a1a18;width:100%;outline:none}
+.form-field input:focus,.form-field select:focus,.form-field textarea:focus{border-color:#888}
+.form-field textarea{resize:vertical;min-height:70px}
+.modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:16px;padding-top:14px;border-top:1px solid #e8e7df}
+
+.toast{position:fixed;bottom:1.5rem;right:1.5rem;background:#1a1a18;color:#fff;padding:10px 16px;border-radius:8px;font-size:13px;z-index:300;opacity:0;transition:opacity .2s;pointer-events:none}
+.toast.show{opacity:1}
+
+.loading-bar{position:fixed;top:0;left:0;height:2px;background:#1a1a18;transition:width .3s;z-index:400;width:0}
+.btn-delete{background:none;border:none;cursor:pointer;color:#ccc;font-size:14px;padding:2px 4px;border-radius:6px;display:inline-flex;align-items:center;margin-left:4px}
+.btn-delete:hover{color:#b83333;background:#fdf0f0}
+.status-pill{font-size:11px;font-weight:500;padding:4px 10px;border-radius:99px;cursor:pointer;opacity:0.35;user-select:none;white-space:nowrap;transition:opacity .15s}
+.status-pill.active{opacity:1}
+.status-pill:hover{opacity:0.85}
+.multi-check{display:flex;flex-wrap:wrap;gap:6px;padding:8px;border:1px solid #d0cfc7;border-radius:8px;background:#fff}
+.mc-item{display:flex;align-items:center;gap:5px;font-size:13px;padding:4px 10px;border:1px solid #e0dfd7;border-radius:99px;cursor:pointer;user-select:none;color:#1a1a18;transition:background .1s,border-color .1s}
+.mc-item:hover{background:#f0efea;border-color:#c0bfb7}
+.mc-item input[type=checkbox]{display:none}
+.mc-item.checked{background:#1a1a18;color:#fff;border-color:#1a1a18}
+.hours-table{width:100%;border-collapse:collapse;font-size:12px}
+.hours-table th{font-size:11px;font-weight:500;color:#888;text-align:right;padding:6px 10px;border-bottom:1px solid #e0dfd7;background:#f8f8f5;white-space:nowrap}
+.hours-table th:first-child{text-align:left}
+.hours-table td{padding:7px 10px;border-bottom:1px solid #e8e7df;text-align:right;font-size:12px}
+.hours-table td:first-child{text-align:left;font-weight:500;color:#1a1a18}
+.hours-table tr:last-child td{border-bottom:none;font-weight:500;background:#f8f8f5}
+.hours-table .zero{color:#ccc}
+.hours-total-row td{font-weight:500;background:#f0efe8;border-top:1px solid #d0cfc7}
+.dash-section{margin-bottom:1.5rem}
+.dash-section-title{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:#888;font-weight:500;margin-bottom:8px}
+.dash-card{background:#fff;border:1px solid #e0dfd7;border-radius:10px;padding:12px 14px;margin-bottom:6px;display:flex;align-items:flex-start;gap:10px}
+.dash-card:last-child{margin-bottom:0}
+.dash-card-body{flex:1;min-width:0}
+.dash-card-title{font-size:13px;font-weight:500;color:#1a1a18;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dash-card-meta{font-size:11px;color:#888;margin-top:2px}
+.dash-card-badges{display:flex;gap:4px;flex-wrap:wrap;margin-top:4px}
+.dash-flag{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:4px}
+.dash-flag-red{background:#b83333}
+.dash-flag-amber{background:#c07a10}
+.dash-flag-blue{background:#2255aa}
+.dash-empty{font-size:12px;color:#aaa;padding:4px 0}
+.dash-section-wrap{background:#f8f8f5;border:1px solid #e8e7df;border-radius:10px;padding:12px 14px;margin-bottom:1rem}
+.settings-list-card{background:#fff;border:1px solid #e0dfd7;border-radius:12px;padding:14px}
+.sl-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;font-size:13px;font-weight:500}
+.sl-body{display:flex;flex-direction:column;gap:4px}
+.sl-item{display:flex;justify-content:space-between;align-items:center;font-size:13px;padding:5px 8px;border-radius:6px;background:#f8f8f5}
+.sl-item:hover{background:#f0efea}
+.sl-remove{background:none;border:none;cursor:pointer;color:#ccc;font-size:13px;padding:2px 4px;border-radius:4px}
+.sl-remove:hover{color:#b83333}
+.sl-empty{font-size:12px;color:#aaa;padding:4px 0}
+</style>
+</head>
+<body>
+<div class="loading-bar" id="loading-bar"></div>
+<div class="toast" id="toast"></div>
+
+<div class="app">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.25rem">
+    <h1 style="margin-bottom:0">CoOp value creation tracker</h1>
+    <button class="btn" style="font-size:12px" onclick="showUserPicker()"><i class="ti ti-user" aria-hidden="true"></i> <span id="current-user-label">—</span></button>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('tracker')">Initiatives</button>
+    <button class="tab" onclick="switchTab('dashboard')"><i class="ti ti-alert-circle" aria-hidden="true"></i> Dashboard</button>
+    <button class="tab" onclick="switchTab('placemat')">Placemat</button>
+    <button class="tab" onclick="switchTab('capacity')">CoOp capacity</button>
+    <button class="tab" onclick="switchTab('impact')">Impact chart</button>
+    <button class="tab" onclick="switchTab('summary')">Weekly summary</button>
+    <button class="tab" onclick="switchTab('settings')">Settings</button>
+  </div>
+
+  <div id="view-tracker" class="view active">
+    <div class="toolbar">
+      <input type="text" id="search" placeholder="Search…" oninput="renderTracker()">
+      <select id="filter-portco" onchange="renderTracker()"><option value="">All companies</option></select>
+      <select id="filter-member" onchange="renderTracker()"><option value="">All members</option></select>
+      <div id="filter-status" style="display:flex;gap:4px;align-items:center;flex-wrap:wrap">
+        <div class="status-pill" data-value="Upcoming"    onclick="toggleStatusFilter(this)" style="background:#f0efe8;color:#5a5952">Upcoming</div>
+        <div class="status-pill active" data-value="In Process"  onclick="toggleStatusFilter(this)" style="background:#dcf0e8;color:#0d6045">In Process</div>
+        <div class="status-pill active" data-value="Wrapping Up" onclick="toggleStatusFilter(this)" style="background:#faeada;color:#7a4208">Wrapping Up</div>
+        <div class="status-pill" data-value="Completed"   onclick="toggleStatusFilter(this)" style="background:#e4f0da;color:#2d6010">Completed</div>
+      </div>
+      <select id="filter-rag" onchange="renderTracker()">
+        <option value="">All pacing</option>
+        <option value="green">Accelerating</option>
+        <option value="amber">Decelerating</option>
+        <option value="steady">Steady</option>
+      </select>
+      <button class="btn btn-primary" onclick="openModal()"><i class="ti ti-plus"></i> Add initiative</button>
+      <button class="btn" onclick="loadData()" title="Refresh"><i class="ti ti-refresh"></i></button>
+    </div>
+    <div class="init-list" id="init-list"><div class="empty-state">Loading…</div></div>
+  </div>
+
+  <div id="view-placemat" class="view">
+    <div class="pm-header">
+      <span style="font-size:14px;font-weight:500">CoOp placemat — rolling priorities</span>
+      <span class="pm-date" id="pm-date"></span>
+    </div>
+    <div class="pm-wrap" id="placemat-content"></div>
+    <div class="legend">
+      <div class="legend-item"><i class="ti ti-arrow-up" style="font-size:13px;color:#5a8a2f"></i> Accelerating</div>
+      <div class="legend-item"><i class="ti ti-arrow-down" style="font-size:13px;color:#c07a10"></i> Decelerating</div>
+      <div class="legend-item"><i class="ti ti-minus" style="font-size:13px;color:#888"></i> Steady</div>
+    </div>
+  </div>
+
+  <div id="view-capacity" class="view">
+    <div style="margin-bottom:1rem;font-size:12px;color:#888">Near-term points from this week's next-2wk effort declarations. Threshold: 13 pts. Total points from initiative effort estimates.</div>
+    <div id="cap-grid"></div>
+  </div>
+
+
+  <div id="view-dashboard" class="view">
+    <div style="font-size:14px;font-weight:500;margin-bottom:1rem">Attention required</div>
+    <div id="dashboard-content"></div>
+  </div>
+
+  <div id="view-impact" class="view">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;flex-wrap:wrap;gap:8px">
+      <span style="font-size:14px;font-weight:500">Impact chart</span>
+      <div style="display:flex;gap:8px;align-items:center">
+        <label style="font-size:12px;color:#888">Company</label>
+        <select id="impact-filter-portco" onchange="renderImpact()" style="font-size:13px;padding:5px 8px;height:30px;border:1px solid #d0cfc7;border-radius:8px;background:#fff;color:#1a1a18">
+          <option value="">All companies</option>
+        </select>
+        <label style="font-size:12px;color:#888">Status</label>
+        <select id="impact-filter-status" onchange="renderImpact()" style="font-size:13px;padding:5px 8px;height:30px;border:1px solid #d0cfc7;border-radius:8px;background:#fff;color:#1a1a18">
+          <option value="">All</option>
+          <option>Upcoming</option><option>In Process</option><option>Wrapping Up</option><option>Completed</option>
+        </select>
+      </div>
+    </div>
+    <div id="impact-chart-wrap" style="position:relative;width:100%;height:420px"></div>
+    <div id="impact-legend" style="display:flex;gap:16px;margin-top:10px;flex-wrap:wrap"></div>
+  </div>
+
+
+  <div id="view-summary" class="view">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;flex-wrap:wrap;gap:8px">
+      <span style="font-size:14px;font-weight:500">Weekly summary</span>
+      <div style="display:flex;gap:8px;align-items:center">
+        <label style="font-size:12px;color:#888">Week of</label>
+        <select id="summary-week-sel" onchange="renderSummary()" style="font-size:13px;padding:5px 8px;height:30px;border:1px solid #d0cfc7;border-radius:8px;background:#fff;color:#1a1a18"></select>
+        <button class="btn btn-primary" onclick="generateSummary()"><i class="ti ti-sparkles"></i> Generate summary</button>
+      </div>
+    </div>
+    <div id="summary-content"></div>
+  </div>
+
+  <div id="view-settings" class="view">
+    <div style="font-size:14px;font-weight:500;margin-bottom:1.25rem">Settings</div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px">
+      <div class="settings-list-card">
+        <div class="sl-header"><span>Portfolio companies</span><button class="btn btn-sm" onclick="openAddSetting('portcos')"><i class="ti ti-plus"></i> Add</button></div>
+        <div id="sl-portcos" class="sl-body"></div>
+      </div>
+      <div class="settings-list-card">
+        <div class="sl-header"><span>CoOp members</span><button class="btn btn-sm" onclick="openAddSetting('members')"><i class="ti ti-plus"></i> Add</button></div>
+        <div id="sl-members" class="sl-body"></div>
+      </div>
+      <div class="settings-list-card">
+        <div class="sl-header"><span>Third party vendors</span><button class="btn btn-sm" onclick="openAddSetting('vendors')"><i class="ti ti-plus"></i> Add</button></div>
+        <div id="sl-vendors" class="sl-body"></div>
+      </div>
+      <div class="settings-list-card">
+        <div class="sl-header"><span>VCP types</span><button class="btn btn-sm" onclick="openAddSetting('vcptypes')"><i class="ti ti-plus"></i> Add</button></div>
+        <div id="sl-vcptypes" class="sl-body"></div>
+      </div>
+    </div>
+  </div>
+
+    </div>
+    <div id="hours-content"></div>
+  </div>
+</div>
+
+
+<div id="user-picker" style="position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:500;display:flex;align-items:center;justify-content:center">
+  <div style="background:#fff;border-radius:14px;padding:28px;width:320px;box-shadow:0 4px 24px rgba(0,0,0,0.12)">
+    <div style="font-size:16px;font-weight:500;margin-bottom:6px">Who are you?</div>
+    <div style="font-size:13px;color:#888;margin-bottom:16px">Select your name to continue. You can change this any time.</div>
+    <div id="user-picker-pills" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:20px"></div>
+    <div style="display:flex;justify-content:flex-end">
+      <button class="btn btn-primary" onclick="confirmUser()" id="user-confirm-btn" disabled>Continue</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal" style="display:none" onclick="closeModalBg(event)">
+  <div class="modal">
+    <div class="modal-title">
+      <span id="modal-title-text">New initiative</span>
+      <button class="modal-close" onclick="closeModal()"><i class="ti ti-x"></i></button>
+    </div>
+    <div class="form-grid">
+      <div class="form-field full">
+        <label>Portfolio company <span style="font-weight:400;color:#aaa">(select all that apply)</span></label>
+        <div class="multi-check" id="f-portco"></div>
+      </div>
+      <div class="form-field full">
+        <label>CoOp member <span style="font-weight:400;color:#aaa">(select all that apply)</span></label>
+        <div class="multi-check" id="f-member"></div>
+      </div>
+      <div class="form-field">
+        <label>VCP type</label>
+<select id="f-vcp"></select>
+      </div>
+      <div class="form-field">
+        <label>Status</label>
+        <select id="f-status">
+          <option>Upcoming</option><option>In Process</option><option>Wrapping Up</option><option>Completed</option>
+        </select>
+      </div>
+      <div class="form-field">
+        <label>Pacing</label>
+        <select id="f-rag">
+          <option value="green">Accelerating</option>
+        <option value="amber">Decelerating</option>
+        <option value="steady">Steady</option>
+        </select>
+      </div>
+      <div class="form-field">
+        <label>Original close date</label>
+        <input type="date" id="f-date-orig">
+      </div>
+      <div class="form-field">
+        <label>Current expected close</label>
+        <input type="date" id="f-date-curr">
+      </div>
+      <div class="form-field">
+        <label>EBITDA impact <span style="font-weight:400;color:#aaa">($M annual run-rate)</span></label>
+        <input type="number" id="f-ebitda" min="0" step="0.1" placeholder="e.g. 1.5">
+      </div>
+      <div class="form-field">
+        <label>Effort estimate</label>
+        <select id="f-effort">
+          <option value="">— select —</option>
+          <option value="XS">XS</option>
+          <option value="S">S</option>
+          <option value="M">M</option>
+          <option value="L">L</option>
+          <option value="XL">XL</option>
+        </select>
+      </div>
+      <div class="form-field full">
+        <label>Description</label>
+        <textarea id="f-desc" rows="2" placeholder="Brief description of the initiative…"></textarea>
+      </div>
+      <div class="form-field full">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+          <label style="margin-bottom:0">Third party support <span style="font-weight:400;color:#aaa">(optional)</span></label>
+          <button type="button" class="btn btn-sm" style="height:24px;font-size:11px;padding:2px 8px" onclick="addVendorInline()"><i class="ti ti-plus" aria-hidden="true"></i> New vendor</button>
+        </div>
+        <div class="multi-check" id="f-vendors"></div>
+      </div>
+
+    </div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveInitiative()">Save initiative</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const API = 'https://script.google.com/macros/s/AKfycbzMvUyjWQJMt41FlChzC70Tbs4xiu2DYboWHdACBGo2kMzjhT8TKKYnwq3xjMFmxhg_Lw/exec';
+function getCurrentUser() { return sessionStorage.getItem('coop_user') || ''; }
+
+function showUserPicker() {
+  const picker = document.getElementById('user-picker');
+  const pillsEl = document.getElementById('user-picker-pills');
+  if(!picker || !pillsEl) return;
+  pillsEl.innerHTML = MEMBERS.map(m => `
+    <label class="mc-item" id="up-${m}" onclick="selectUserPill('${m}')">
+      <input type="radio" name="user-pick" value="${m}" style="display:none"> ${m}
+    </label>`).join('');
+  // Pre-select if already set
+  const cur = getCurrentUser();
+  if(cur) {
+    const el = document.getElementById('up-'+cur);
+    if(el) { el.classList.add('checked'); document.getElementById('user-confirm-btn').disabled = false; }
+  }
+  picker.style.display = 'flex';
+}
+
+function selectUserPill(m) {
+  document.querySelectorAll('#user-picker-pills .mc-item').forEach(el=>el.classList.remove('checked'));
+  const el = document.getElementById('up-'+m);
+  if(el) el.classList.add('checked');
+  document.getElementById('user-confirm-btn').disabled = false;
+  document.getElementById('user-confirm-btn').dataset.val = m;
+}
+
+function confirmUser() {
+  const val = document.getElementById('user-confirm-btn').dataset.val || getCurrentUser();
+  if(!val) return;
+  sessionStorage.setItem('coop_user', val);
+  document.getElementById('user-picker').style.display = 'none';
+  loadData().then(()=>setDefaultFilters());
+}
+let PORTCOS = ['United Safety','Tech Tube','EverLine','ISC','Nexus Integrity','Aero/ISC','Davis','CFKC'];
+let MEMBERS = ['DN','BR','KS','JR','BL','DS']; // overwritten on load from Settings sheet
+let VENDORS = []; // overwritten on load from Settings sheet
+let VCP_TYPES = ['Pricing','Commercial Engine','Operations / Supply Chain','Customer Experience','SG&A','Working Capital','Talent','Strategy']; // overwritten on load from Settings sheet
+
+let initiatives = [];
+let editId = null;
+let openCards = new Set();
+const noteEditState = {}; // initiativeId -> note index being edited
+
+function getMondayOptions() {
+  const mondays = [];
+  const today = new Date();
+  today.setHours(0,0,0,0);
+  const day = today.getDay();
+  const thisMon = new Date(today);
+  thisMon.setDate(today.getDate() - (day === 0 ? 6 : day - 1));
+  thisMon.setHours(0,0,0,0);
+  // Only include weeks that have already started (thisMon <= today)
+  // Go back up to 8 weeks
+  for (let i = 0; i >= -8; i--) {
+    const d = new Date(thisMon);
+    d.setDate(thisMon.getDate() + i * 7);
+    if(d > today) continue; // skip future weeks
+    const iso = d.toISOString().slice(0,10);
+    const label = d.toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'});
+    mondays.push({ iso, label, current: i === 0 });
+  }
+  return mondays;
+}
+
+function getMondaySelect(id) {
+  const mondays = getMondayOptions();
+  const opts = mondays.map(m => `<option value="${m.iso}"${m.current?' selected':''}>${m.label}</option>`).join('');
+  return `<select id="note-week-${id}" style="font-size:12px;padding:4px 8px;height:28px;border:1px solid #d0cfc7;border-radius:8px;background:#fff;color:#1a1a18;width:100%">${opts}</select>`;
+}
+
+function getMultiCheck(id) {
+  return [...document.querySelectorAll(`#${id} .mc-item.checked`)].map(el=>el.dataset.value);
+}
+
+function setMultiCheck(id, values) {
+  const arr = Array.isArray(values) ? values : (values||'').split('|').filter(Boolean);
+  document.querySelectorAll(`#${id} .mc-item`).forEach(el=>{
+    el.classList.toggle('checked', arr.includes(el.dataset.value));
+  });
+}
+
+function clearMultiCheck(id) {
+  document.querySelectorAll(`#${id} .mc-item`).forEach(el=>el.classList.remove('checked'));
+}
+
+function buildModalLists() {
+  // Rebuild VCP dropdown
+  const vcpSel = document.getElementById('f-vcp');
+  if(vcpSel) {
+    const curVcp = vcpSel.value;
+    vcpSel.innerHTML = VCP_TYPES.map(v=>`<option${v===curVcp?' selected':''}>${v}</option>`).join('');
+  }
+
+  [['f-portco', ()=>PORTCOS], ['f-member', ()=>MEMBERS], ['f-vendors', ()=>VENDORS]].forEach(([id, getList]) => {
+    const el = document.getElementById(id);
+    if(!el) return;
+    const list = getList();
+    if(!list.length) {
+      el.innerHTML = '<span style="font-size:12px;color:#aaa">No vendors configured — add them in Settings.</span>';
+    } else {
+      el.innerHTML = list.map(v=>`<div class="mc-item" data-value="${v}" onclick="toggleMcItem(this)">${v}</div>`).join('');
+    }
+  });
+}
+
+function toggleMcItem(el) {
+  el.classList.toggle('checked');
+}
+
+function initMultiChecks() {}
+
+function showToast(msg, duration=2500) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), duration);
+}
+
+function setLoading(pct) {
+  const bar = document.getElementById('loading-bar');
+  bar.style.width = pct + '%';
+  if(pct >= 100) setTimeout(()=>bar.style.width='0', 400);
+}
+
+async function api(params, body) {
+  setLoading(30);
+  try {
+    let url = API;
+    if(params) url += '?' + new URLSearchParams(params);
+    const opts = body
+      ? { method:'POST', body: JSON.stringify(body) }
+      : { method:'GET' };
+    const res = await fetch(url, opts);
+    const data = await res.json();
+    setLoading(100);
+    if(data.error) throw new Error(data.error);
+    return data;
+  } catch(err) {
+    setLoading(100);
+    showToast('Error: ' + err.message, 4000);
+    throw err;
+  }
+}
+
+async function loadData() {
+  const userLabel = document.getElementById('current-user-label');
+  if(userLabel) userLabel.textContent = getCurrentUser() || '—';
+  document.getElementById('init-list').innerHTML = '<div class="empty-state">Loading…</div>';
+  try {
+    const data = await api({ action: 'load' });
+
+    if(data.portcos && data.portcos.length) PORTCOS = data.portcos.map(p=>p.toString().trim());
+    if(data.members && data.members.length) MEMBERS = data.members.map(m=>m.toString().trim());
+    if(data.vendors) VENDORS = data.vendors.map(v=>v.toString().trim()).filter(Boolean);
+    if(data.vcptypes && data.vcptypes.length) VCP_TYPES = data.vcptypes.map(v=>v.toString().trim()).filter(Boolean);
+
+    const notesMap = {};
+    (data.notes || []).forEach(n => {
+      if(!notesMap[n.initiativeId]) notesMap[n.initiativeId] = [];
+      notesMap[n.initiativeId].push(n);
+    });
+    initiatives = (data.initiatives || []).map(ini => ({
+      ...ini,
+      notes: notesMap[ini.id] || []
+    }));
+    setDefaultFilters();
+    renderTracker();
+    showToast('Loaded');
+  } catch(e) {
+    document.getElementById('init-list').innerHTML = '<div class="empty-state">Could not load data. Check your connection and try refreshing.</div>';
+  }
+}
+
+function getId() { return Date.now().toString(36) + Math.random().toString(36).slice(2,6); }
+function ragLabel(r) { return r==='green'?'Accelerating':r==='amber'?'Decelerating':r==='steady'?'Steady':'Steady'; }
+function pacingIcon(r) {
+  if(r==='green')  return '<i class="ti ti-arrow-up"   style="font-size:12px;color:#5a8a2f;flex-shrink:0" aria-label="Accelerating"></i>';
+  if(r==='amber')  return '<i class="ti ti-arrow-down" style="font-size:12px;color:#c07a10;flex-shrink:0" aria-label="Decelerating"></i>';
+  return '<i class="ti ti-minus" style="font-size:12px;color:#888;flex-shrink:0" aria-label="Steady"></i>';
+}
+function statusBadgeClass(s) { return 'badge-' + s.toLowerCase().replace(/ /g,'-'); }
+
+function switchTab(t) {
+  document.querySelectorAll('.tab').forEach((el,i)=>{
+    el.classList.toggle('active', ['tracker','dashboard','placemat','capacity','impact','summary','settings'][i]===t);
+  });
+  document.querySelectorAll('.view').forEach(el=>el.classList.remove('active'));
+  document.getElementById('view-'+t).classList.add('active');
+  if(t==='placemat') renderPlacemat();
+  if(t==='capacity') renderCapacity();
+  if(t==='settings') renderSettings();
+  if(t==='dashboard') renderDashboard();
+  if(t==='impact') renderImpact();
+  if(t==='summary') renderSummary();
+}
+
+function toggleStatusFilter(el) {
+  el.classList.toggle('active');
+  renderTracker();
+}
+
+function getStatusFilters() {
+  return [...document.querySelectorAll('#filter-status .status-pill.active')].map(el=>el.dataset.value);
+}
+
+function setDefaultFilters() {
+  const user = getCurrentUser();
+  // Pre-select member filter to current user
+  const memberSel = document.getElementById('filter-member');
+  if(memberSel && user) memberSel.value = user;
+  // Status defaults: In Process + Wrapping Up already active in HTML
+  // Upcoming and Completed start inactive
+}
+
+function populateFilters() {
+  const portcoSel = document.getElementById('filter-portco');
+  const memberSel = document.getElementById('filter-member');
+  const curP = portcoSel.value, curM = memberSel.value;
+  portcoSel.innerHTML = '<option value="">All companies</option>' + PORTCOS.map(p=>`<option${p===curP?' selected':''}>${p}</option>`).join('');
+  memberSel.innerHTML = '<option value="">All members</option>' + MEMBERS.map(m=>`<option${m===curM?' selected':''}>${m}</option>`).join('');
+}
+
+function getFiltered() {
+  const q = (document.getElementById('search').value||'').toLowerCase();
+  const portco = document.getElementById('filter-portco').value;
+  const member = document.getElementById('filter-member').value;
+  const statuses = getStatusFilters();
+  const rag = document.getElementById('filter-rag').value;
+  return initiatives.filter(i=>{
+    if(portco && !i.portco.split('|').includes(portco)) return false;
+    if(member && !i.member.split('|').includes(member)) return false;
+    if(statuses.length && !statuses.includes(i.status)) return false;
+    if(rag && i.rag!==rag) return false;
+    if(q && !(i.desc+i.portco+i.member+i.vcp).toLowerCase().includes(q)) return false;
+    return true;
+  });
+}
+
+function renderTracker() {
+  populateFilters();
+  const list = document.getElementById('init-list');
+  const filtered = getFiltered();
+  if(!filtered.length) {
+    list.innerHTML = '<div class="empty-state">No initiatives match your filters.<br>Click "Add initiative" to create one.</div>';
+    return;
+  }
+  list.innerHTML = filtered.map(ini=>{
+    const open = openCards.has(ini.id);
+    const lastNoteDate = ini.notes && ini.notes.length ? ini.notes[ini.notes.length-1].date : null;
+    const daysSinceUpdate = lastNoteDate ? Math.floor((new Date() - new Date(lastNoteDate)) / 86400000) : 999;
+    const isStale = daysSinceUpdate >= 14;
+    const notesReversed = (ini.notes||[]).slice().reverse();
+    const notesHtml = notesReversed.map((n,i,arr)=>{ const realIdx = (ini.notes||[]).length - 1 - i; return `
+      <div class="note-entry">
+        <div class="note-date">Week of ${n.date} · <span style="color:#888">${n.loggedBy||'?'}</span>${n.nextEffort?` · <span style="font-size:10px;background:#e6f1fb;color:#1050a0;padding:1px 6px;border-radius:99px;font-weight:500">Next 2wk: ${n.nextEffort} (${EFFORT_PTS[n.nextEffort]||0}pts)</span>`:''}</div>
+        ${n.status||n.rag?`<div style="display:flex;gap:6px;margin-bottom:3px;align-items:center">${n.status?`<span class="badge ${statusBadgeClass(n.status)}" style="font-size:10px">${n.status}</span>`:''} ${n.rag?`<span style="display:inline-flex;align-items:center;gap:3px;font-size:10px;color:#888"><span class="rag rag-${n.rag}" style="width:7px;height:7px"></span>${ragLabel(n.rag)}</span>`:''}</div>`:''}
+        <div class="note-text"><strong>This week:</strong> ${n.thisWeek||'—'}</div>
+        <div class="note-text"><strong>Next week:</strong> ${n.nextWeek||'—'}</div>
+      </div>${i<arr.length-1?'<hr class="note-divider">':''}`; }).join('');
+    const shortDesc = ini.desc.length>72 ? ini.desc.slice(0,72)+'…' : ini.desc;
+    return `
+    <div class="init-card">
+      <div class="init-header" onclick="toggleCard('${ini.id}')">
+        <div class="rag rag-${ini.rag}"></div>
+        <div class="init-title">${shortDesc}${isStale ? '<span style="font-size:10px;background:#faeada;color:#7a4208;padding:1px 6px;border-radius:99px;margin-left:6px;font-weight:500">No update '+daysSinceUpdate+'d</span>' : ''}</div>
+        <div class="init-meta">
+          ${ini.portco.split('|').map(p=>`<span class="badge badge-portco">${p}</span>`).join('')}
+          ${ini.member.split('|').map(m=>`<span class="badge badge-member">${m}</span>`).join('')}
+          ${(ini.vendors||'').split('|').filter(Boolean).map(v=>`<span class="badge badge-vendor">${v}</span>`).join('')}
+          <span class="badge badge-vcp">${ini.vcp}</span>
+          <span class="badge ${statusBadgeClass(ini.status)}">${ini.status}</span>
+          <i class="ti ti-chevron-down chevron${open?' open':''}"></i>
+          ${getCurrentUser()==='DN'?`<button class="btn-delete" onclick="deleteInitiative('${ini.id}',event)" title="Delete initiative"><i class="ti ti-trash"></i></button>`:''}
+        </div>
+      </div>
+      <div class="init-body${open?' open':''}">
+        <div class="field-row">
+          <div class="field"><label>Full description</label><div class="field-val">${ini.desc}</div></div>
+          <div class="field"><label>Pacing</label><div class="field-val" style="display:flex;align-items:center;gap:6px"><div class="rag rag-${ini.rag}"></div>${ragLabel(ini.rag)}</div></div>
+        </div>
+        <div class="field-row">
+          <div class="field"><label>Original close date</label><div class="field-val">${ini.dateOrig||'—'}</div></div>
+          <div class="field"><label>Current expected close</label><div class="field-val">${ini.dateCurr||'—'}</div></div>
+        </div>
+        <div class="field-row">
+          <div class="field"><label>EBITDA impact</label><div class="field-val">${ini.ebitda ? '$'+ini.ebitda+'M' : '—'}</div></div>
+          <div class="field"><label>Effort estimate</label><div class="field-val">${ini.effort||'—'}</div></div>
+        </div>
+        <div class="field">
+          <label>Weekly actions log</label>
+          <div class="notes-log">${notesHtml||'<span style="font-size:12px;color:#aaa">No entries yet.</span>'}</div>
+        </div>
+        <div class="log-section">
+          <label style="margin-bottom:4px;display:block">Log this week's update</label>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px;margin-bottom:8px">
+            <div>
+              <div style="font-size:11px;color:#888;margin-bottom:3px">Week starting</div>
+              ${getMondaySelect(ini.id)}
+            </div>
+            <div>
+              <div style="font-size:11px;color:#888;margin-bottom:3px">Status</div>
+              <select id="note-status-${ini.id}" style="font-size:12px;padding:4px 8px;height:28px;border:1px solid #d0cfc7;border-radius:8px;background:#fff;color:#1a1a18;width:100%">
+                <option value="Upcoming"${ini.status==='Upcoming'?' selected':''}>Upcoming</option>
+                <option value="In Process"${ini.status==='In Process'?' selected':''}>In Process</option>
+                <option value="Wrapping Up"${ini.status==='Wrapping Up'?' selected':''}>Wrapping Up</option>
+                <option value="Completed"${ini.status==='Completed'?' selected':''}>Completed</option>
+              </select>
+            </div>
+            <div>
+              <div style="font-size:11px;color:#888;margin-bottom:3px">Pacing</div>
+              <select id="note-rag-${ini.id}" style="font-size:12px;padding:4px 8px;height:28px;border:1px solid #d0cfc7;border-radius:8px;background:#fff;color:#1a1a18;width:100%">
+                <option value="green"${ini.rag==='green'?' selected':''}>Accelerating</option>
+                <option value="amber"${ini.rag==='amber'?' selected':''}>Decelerating</option>
+                <option value="steady"${ini.rag==='steady'?' selected':''}>Steady</option>
+              </select>
+            </div>
+            <div>
+              <div style="font-size:11px;color:#888;margin-bottom:3px">Next 2wk effort</div>
+              <select id="note-nexteff-${ini.id}" style="font-size:12px;padding:4px 8px;height:28px;border:1px solid #d0cfc7;border-radius:8px;background:#fff;color:#1a1a18;width:100%">
+                <option value="">—</option>
+                <option value="XS">XS</option>
+                <option value="S">S</option>
+                <option value="M">M</option>
+                <option value="L">L</option>
+                <option value="XL">XL</option>
+              </select>
+            </div>
+          </div>
+          ${(()=>{ const last = ini.notes && ini.notes.length ? ini.notes[ini.notes.length-1] : null; return last && last.nextWeek ? `<div style="background:#fffbe6;border:1px solid #f0e68c;border-radius:8px;padding:8px 10px;margin-bottom:8px;font-size:12px"><div style="font-size:10px;text-transform:uppercase;letter-spacing:.04em;color:#888;margin-bottom:3px">Planned last week</div><div style="color:#1a1a18;line-height:1.5">${last.nextWeek}</div></div>` : ''; })()}
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+            <div>
+              <div style="font-size:11px;color:#888;margin-bottom:3px">Actions this week</div>
+              <textarea id="note-this-${ini.id}" placeholder="What happened…"></textarea>
+            </div>
+            <div>
+              <div style="font-size:11px;color:#888;margin-bottom:3px">Actions next week</div>
+              <textarea id="note-next-${ini.id}" placeholder="What's coming…"></textarea>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;margin-top:2px">
+            ${noteEditState[ini.id]!==undefined?`<span style="font-size:11px;color:#c07a10;font-weight:500"><i class="ti ti-pencil"></i> Editing entry</span>`:''}
+            <div class="log-actions" style="margin-left:auto">
+              <button class="btn btn-sm" onclick="openModal('${ini.id}')"><i class="ti ti-edit"></i> Edit initiative</button>
+              ${noteEditState[ini.id]!==undefined?`<button class="btn btn-sm" onclick="cancelEditNote('${ini.id}')"><i class="ti ti-x"></i> Cancel</button>`:''}
+              <button class="btn btn-primary btn-sm" onclick="logNote('${ini.id}')"><i class="ti ti-check"></i> ${noteEditState[ini.id]!==undefined?'Save edit':'Log update'}</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function deleteInitiative(id, e) {
+  e.stopPropagation();
+  if(!confirm('Delete this initiative? This cannot be undone.')) return;
+  await api(null, { action: 'deleteInitiative', id });
+  initiatives = initiatives.filter(i=>i.id!==id);
+  openCards.delete(id);
+  showToast('Initiative deleted');
+  renderTracker();
+}
+
+function startEditNote(initiativeId, noteIdx) {
+  const ini = initiatives.find(i=>i.id===initiativeId);
+  if(!ini || !ini.notes[noteIdx]) return;
+  const n = ini.notes[noteIdx];
+  noteEditState[initiativeId] = noteIdx;
+
+  // Pre-fill log fields
+  const weekEl     = document.getElementById('note-week-'+initiativeId);
+  const statusEl   = document.getElementById('note-status-'+initiativeId);
+  const ragEl      = document.getElementById('note-rag-'+initiativeId);
+  const nextEffEl  = document.getElementById('note-nexteff-'+initiativeId);
+  const thisEl     = document.getElementById('note-this-'+initiativeId);
+  const nextEl     = document.getElementById('note-next-'+initiativeId);
+
+  if(weekEl)    weekEl.value    = n.date||'';
+  if(statusEl)  statusEl.value  = n.status||ini.status;
+  if(ragEl)     ragEl.value     = n.rag||ini.rag;
+  if(nextEffEl) nextEffEl.value = n.nextEffort||'';
+  if(thisEl)    thisEl.value    = n.thisWeek||'';
+  if(nextEl)    nextEl.value    = n.nextWeek||'';
+
+  // Re-render just to update the button label
+  renderTracker();
+  // Scroll to log section
+  setTimeout(()=>{
+    const logEl = document.querySelector(`#note-this-${initiativeId}`);
+    if(logEl) logEl.scrollIntoView({behavior:'smooth', block:'center'});
+  }, 100);
+}
+
+function cancelEditNote(initiativeId) {
+  delete noteEditState[initiativeId];
+  renderTracker();
+}
+
+function toggleCard(id) {
+  if(openCards.has(id)) openCards.delete(id); else openCards.add(id);
+  renderTracker();
+}
+
+async function logNote(id) {
+  const thisEl   = document.getElementById('note-this-'+id);
+  const nextEl   = document.getElementById('note-next-'+id);
+  const weekEl   = document.getElementById('note-week-'+id);
+  const statusEl   = document.getElementById('note-status-'+id);
+  const ragEl      = document.getElementById('note-rag-'+id);
+  const nextEffEl  = document.getElementById('note-nexteff-'+id);
+  const thisWeek = (thisEl||{}).value||'';
+  const nextWeek = (nextEl||{}).value||'';
+  if(!thisWeek && !nextWeek) { showToast('Add at least one action before logging.'); return; }
+  const weekDate = weekEl ? weekEl.value : new Date().toISOString().slice(0,10);
+  const ini      = initiatives.find(i=>i.id===id);
+  if(!ini) return;
+
+  // Update status and pacing if changed
+  const newStatus = statusEl ? statusEl.value : ini.status;
+  const newRag    = ragEl ? ragEl.value : ini.rag;
+  if(newStatus !== ini.status || newRag !== ini.rag) {
+    ini.status = newStatus;
+    ini.rag = newRag;
+    await api(null, { action: 'saveInitiative', initiative: { ...ini, notes: undefined } });
+  }
+
+  const nextEffort = nextEffEl ? nextEffEl.value : '';
+  const note = { initiativeId: id, date: weekDate, thisWeek, nextWeek, nextEffort, loggedBy: getCurrentUser(), status: newStatus, rag: newRag, member: ini.member, portco: ini.portco };
+
+  const editIdx = noteEditState[id];
+  if(editIdx !== undefined) {
+    // Edit mode — overwrite existing note in Sheet and in memory
+    const existingNote = ini.notes[editIdx];
+    const updatedNote = { ...existingNote, ...note };
+    await api(null, { action: 'editNote', note: updatedNote, originalDate: existingNote.date, originalLoggedBy: existingNote.loggedBy });
+    ini.notes[editIdx] = updatedNote;
+    delete noteEditState[id];
+    showToast('Entry updated');
+  } else {
+    await api(null, { action: 'logNote', note });
+    if(!ini.notes) ini.notes = [];
+    ini.notes.push(note);
+    showToast('Update logged');
+  }
+  renderTracker();
+}
+
+function openModal(id) {
+  editId = id||null;
+  document.getElementById('modal-title-text').textContent = id ? 'Edit initiative' : 'New initiative';
+
+  // Always build lists first so pills exist before selections are applied
+  buildModalLists();
+
+  if(id) {
+    const ini = initiatives.find(i=>i.id===id);
+    if(ini) {
+      setMultiCheck('f-portco', ini.portco);
+      setMultiCheck('f-member', ini.member);
+      setMultiCheck('f-vendors', ini.vendors||'');
+      document.getElementById('f-vcp').value = ini.vcp;
+      document.getElementById('f-status').value = ini.status;
+      document.getElementById('f-rag').value = ini.rag;
+      document.getElementById('f-date-orig').value = ini.dateOrig||'';
+      document.getElementById('f-date-curr').value = ini.dateCurr||'';
+      document.getElementById('f-ebitda').value = ini.ebitda||'';
+      document.getElementById('f-effort').value = ini.effort||'';
+      document.getElementById('f-desc').value = ini.desc;
+    }
+  } else {
+    document.getElementById('f-desc').value='';
+    ['f-date-orig','f-date-curr','f-ebitda'].forEach(f=>document.getElementById(f).value='');
+    document.getElementById('f-effort').value='';
+    clearMultiCheck('f-portco');
+    clearMultiCheck('f-member');
+    clearMultiCheck('f-vendors');
+  }
+  document.getElementById('modal').style.display='flex';
+}
+
+function closeModal() { document.getElementById('modal').style.display='none'; editId=null; }
+function closeModalBg(e) { if(e.target===document.getElementById('modal')) closeModal(); }
+
+async function saveInitiative() {
+  const desc = document.getElementById('f-desc').value.trim();
+  if(!desc) { showToast('Please add a description.'); return; }
+  if(!getMultiCheck('f-portco').length) { showToast('Select at least one portfolio company.'); return; }
+  if(!getMultiCheck('f-member').length) { showToast('Select at least one CoOp member.'); return; }
+  const initiative = {
+    id: editId || getId(),
+    portco: getMultiCheck('f-portco').join('|'),
+    member: getMultiCheck('f-member').join('|'),
+    vendors: getMultiCheck('f-vendors').join('|'),
+    vcp: document.getElementById('f-vcp').value,
+    status: document.getElementById('f-status').value,
+    rag: document.getElementById('f-rag').value,
+    dateOrig: document.getElementById('f-date-orig').value,
+    dateCurr: document.getElementById('f-date-curr').value,
+    ebitda: document.getElementById('f-ebitda').value ? parseFloat(parseFloat(document.getElementById('f-ebitda').value).toFixed(1)) : '',
+    effort: document.getElementById('f-effort').value,
+    desc,
+  };
+
+  await api(null, { action: 'saveInitiative', initiative });
+
+  if(editId) {
+    const idx = initiatives.findIndex(i=>i.id===editId);
+    if(idx>=0) initiatives[idx] = { ...initiatives[idx], ...initiative };
+  } else {
+    initiative.notes = [];
+    initiatives.push(initiative);
+  }
+
+  showToast(editId ? 'Initiative updated' : 'Initiative created');
+  closeModal();
+  renderTracker();
+}
+
+function renderPlacemat() {
+  document.getElementById('pm-date').textContent = new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});
+  const active = initiatives.filter(i=>i.status!=='Completed');
+  const portcos = [...new Set(active.flatMap(i=>i.portco.split('|')))].sort();
+  if(!portcos.length) {
+    document.getElementById('placemat-content').innerHTML = '<div class="empty-state">No active initiatives to display.</div>';
+    return;
+  }
+
+  const STATUS_GROUPS = [
+    { status: 'Wrapping Up', bg: '#faeada', color: '#7a4208' },
+    { status: 'In Process',  bg: '#dcf0e8', color: '#0d6045' },
+    { status: 'Upcoming',    bg: '#f0efe8', color: '#5a5952' },
+  ];
+
+  const numCols = VCP_TYPES.length + 1; // portco label col + vcp cols
+
+  function cellItems(portco, vcp, status) {
+    return active.filter(i =>
+      i.portco.split('|').includes(portco) &&
+      i.vcp === vcp &&
+      i.status === status
+    );
+  }
+
+  let html = `<div style="overflow-x:auto"><table class="pm-grid"><thead><tr>
+    <th style="min-width:110px">Company</th>${VCP_TYPES.map(v=>`<th>${v}</th>`).join('')}
+  </tr></thead><tbody>`;
+
+  portcos.forEach((p, pi) => {
+    const portcoItems = active.filter(i => i.portco.split('|').includes(p));
+    if(!portcoItems.length) return;
+
+    // Portco header row — spans all columns
+    const borderTop = pi > 0 ? 'border-top:2px solid #d0cfc7;' : '';
+    html += `<tr>
+      <td colspan="${numCols}" style="padding:8px 8px 4px;font-size:13px;font-weight:500;background:#f8f8f5;${borderTop}">${p}</td>
+    </tr>`;
+
+    // One row per status group
+    STATUS_GROUPS.forEach(g => {
+      const groupItems = portcoItems.filter(i => i.status === g.status);
+      if(!groupItems.length) return;
+
+      html += `<tr>`;
+      // Status label cell
+      html += `<td style="padding:4px 8px;vertical-align:top;white-space:nowrap">
+        <span style="font-size:11px;font-weight:500;padding:2px 8px;border-radius:99px;background:${g.bg};color:${g.color}">${g.status}</span>
+      </td>`;
+
+      // VCP cells for this portco + status
+      VCP_TYPES.forEach(v => {
+        const items = cellItems(p, v, g.status);
+        if(!items.length) { html += `<td><span class="pm-empty">—</span></td>`; return; }
+        html += `<td><div class="pm-cell">` + items.map(i => `
+          <div class="pm-item">
+            ${pacingIcon(i.rag)}
+            ${(()=>{ const n=i.notes&&i.notes.length?i.notes[i.notes.length-1]:null; return n&&n.nextEffort?`<span style="font-size:10px;font-weight:500;background:#e6f1fb;color:#1050a0;padding:1px 5px;border-radius:99px;flex-shrink:0">${n.nextEffort}</span>`:''; })()}
+            <span>${i.member.split('|').join('/')}: ${i.desc.length>28?i.desc.slice(0,28)+'…':i.desc}</span>
+          </div>`).join('') + `</div></td>`;
+      });
+
+      html += `</tr>`;
+    });
+  });
+
+  html += `</tbody></table></div>`;
+  document.getElementById('placemat-content').innerHTML = html;
+}
+
+const EFFORT_PTS = {XS:1,S:2,M:3,L:5,XL:8};
+const CAP_THRESHOLD = 13;
+
+function effortPts(ini) { return EFFORT_PTS[ini.effort] || 0; }
+
+function getLatestNote(ini) {
+  return ini.notes && ini.notes.length ? ini.notes[ini.notes.length-1] : null;
+}
+
+function nearTermPts(ini) {
+  const n = getLatestNote(ini);
+  return n && n.nextEffort ? (EFFORT_PTS[n.nextEffort]||0) : 0;
+}
+
+function renderCapacity() {
+  const active = initiatives.filter(i=>['Upcoming','In Process','Wrapping Up'].includes(i.status));
+  const grid = document.getElementById('cap-grid');
+
+  // Summary row per member
+  const memberRows = MEMBERS.map(m=>{
+    const mine = active.filter(i=>i.member.split('|').includes(m));
+    const totalPts = mine.reduce((s,i)=>s+effortPts(i),0);
+    const nearPts  = mine.reduce((s,i)=>s+nearTermPts(i),0);
+    const ambers   = mine.filter(i=>i.rag==='amber').length;
+    const overloaded = nearPts >= CAP_THRESHOLD;
+    const pct = Math.min(100, (nearPts/CAP_THRESHOLD)*100);
+    const ptColor = overloaded?'#b83333':ambers?'#c07a10':'#5a8a2f';
+    return {m, mine, totalPts, nearPts, ambers, overloaded, pct, ptColor};
+  });
+
+  // Summary table
+  let html = `<table style="width:100%;border-collapse:collapse;font-size:13px;margin-bottom:1.5rem">
+    <thead>
+      <tr style="border-bottom:1px solid #e0dfd7">
+        <th style="text-align:left;padding:8px 10px;font-size:11px;font-weight:500;color:#888">Member</th>
+        <th style="text-align:right;padding:8px 10px;font-size:11px;font-weight:500;color:#888">Initiatives</th>
+        <th style="text-align:right;padding:8px 10px;font-size:11px;font-weight:500;color:#888">Total pts</th>
+        <th style="text-align:right;padding:8px 10px;font-size:11px;font-weight:500;color:#888">Near-term pts</th>
+        <th style="padding:8px 10px;font-size:11px;font-weight:500;color:#888;min-width:120px">Near-term load</th>
+        <th style="text-align:left;padding:8px 10px;font-size:11px;font-weight:500;color:#888">Flags</th>
+      </tr>
+    </thead>
+    <tbody>`;
+
+  memberRows.forEach(({m, mine, totalPts, nearPts, ambers, overloaded, pct, ptColor})=>{
+    html += `<tr style="border-bottom:1px solid #f0efe8">
+      <td style="padding:10px 10px;font-weight:500">${m}</td>
+      <td style="padding:10px 10px;text-align:right;color:#888">${mine.length}</td>
+      <td style="padding:10px 10px;text-align:right;color:#888">${totalPts||'—'}</td>
+      <td style="padding:10px 10px;text-align:right;font-weight:500;color:${ptColor}">${nearPts||'—'}</td>
+      <td style="padding:10px 10px">
+        <div style="background:#e8e7df;border-radius:99px;height:6px;overflow:hidden">
+          <div style="height:6px;border-radius:99px;background:${ptColor};width:${pct}%"></div>
+        </div>
+      </td>
+      <td style="padding:10px 10px;font-size:11px">
+        ${overloaded?'<span style="color:#b83333">⚠ Over threshold</span>':''}
+        ${ambers?`<span style="color:#c07a10">${ambers} decelerating</span>`:''}
+        ${!overloaded&&!ambers?'<span style="color:#aaa">—</span>':''}
+      </td>
+    </tr>`;
+  });
+
+  html += `</tbody></table>`;
+
+  // Detail section — one section per member with their initiatives
+  memberRows.forEach(({m, mine, nearPts, ptColor, overloaded})=>{
+    if(!mine.length) return;
+    html += `<div style="margin-bottom:1.25rem">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+        <div style="font-size:13px;font-weight:500">${m}</div>
+        ${nearPts?`<div style="font-size:11px;color:${ptColor};font-weight:500">${nearPts} near-term pts</div>`:''}
+      </div>
+      <table style="width:100%;border-collapse:collapse;font-size:12px">
+        <thead>
+          <tr style="border-bottom:1px solid #e8e7df">
+            <th style="text-align:left;padding:5px 8px;font-size:11px;font-weight:500;color:#888">Initiative</th>
+            <th style="text-align:left;padding:5px 8px;font-size:11px;font-weight:500;color:#888">Company</th>
+            <th style="text-align:left;padding:5px 8px;font-size:11px;font-weight:500;color:#888">Status</th>
+            <th style="text-align:left;padding:5px 8px;font-size:11px;font-weight:500;color:#888">Pacing</th>
+            <th style="text-align:center;padding:5px 8px;font-size:11px;font-weight:500;color:#888">Total effort</th>
+            <th style="text-align:center;padding:5px 8px;font-size:11px;font-weight:500;color:#888">Next 2wk</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${mine.map(i=>{
+            const n = getLatestNote(i);
+            return `<tr style="border-bottom:1px solid #f8f8f5">
+              <td style="padding:6px 8px;max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${i.desc.length>40?i.desc.slice(0,40)+'…':i.desc}</td>
+              <td style="padding:6px 8px;color:#888">${i.portco.split('|').join(', ')}</td>
+              <td style="padding:6px 8px"><span class="badge ${statusBadgeClass(i.status)}">${i.status}</span></td>
+              <td style="padding:6px 8px">${pacingIcon(i.rag)}</td>
+              <td style="padding:6px 8px;text-align:center">${i.effort?`<span style="font-size:11px;font-weight:500;color:#888">${i.effort} (${effortPts(i)})</span>`:'<span style="color:#ccc">—</span>'}</td>
+              <td style="padding:6px 8px;text-align:center">${n&&n.nextEffort?`<span style="font-size:11px;font-weight:500;background:#e6f1fb;color:#1050a0;padding:1px 6px;border-radius:99px">${n.nextEffort} (${EFFORT_PTS[n.nextEffort]||0})</span>`:'<span style="color:#ccc">—</span>'}</td>
+            </tr>`;
+          }).join('')}
+        </tbody>
+      </table>
+    </div>`;
+  });
+
+  grid.innerHTML = html;
+}
+
+
+function renderDashboard() {
+  const content = document.getElementById('dashboard-content');
+  if(!content) return;
+
+  const today = new Date(); today.setHours(0,0,0,0);
+  const active = initiatives.filter(i=>i.status!=='Completed');
+
+  // Current Monday
+  const day = today.getDay();
+  const thisMon = new Date(today);
+  thisMon.setDate(today.getDate() - (day===0?6:day-1));
+  const thisMonISO = thisMon.toISOString().slice(0,10);
+
+  // Last Monday
+  const lastMon = new Date(thisMon); lastMon.setDate(thisMon.getDate()-7);
+  const lastMonISO = lastMon.toISOString().slice(0,10);
+
+  function lastNote(ini) {
+    return ini.notes && ini.notes.length ? ini.notes[ini.notes.length-1] : null;
+  }
+  function daysSince(ini) {
+    const n = lastNote(ini);
+    if(!n) return 999;
+    return Math.floor((today - new Date(n.date)) / 86400000);
+  }
+  function hasUpdateThisWeek(ini) {
+    return (ini.notes||[]).some(n=>n.date===thisMonISO);
+  }
+  function hasUpdateLastWeek(ini) {
+    return (ini.notes||[]).some(n=>n.date===lastMonISO);
+  }
+
+  const stalled = active.filter(i=>daysSince(i)>=14);
+  // Near-term overload: members whose next-2-week pts >= threshold
+  const nearTermByMember = {};
+  MEMBERS.forEach(m=>{ nearTermByMember[m]=0; });
+  active.forEach(i=>{
+    i.member.split('|').forEach(m=>{
+      nearTermByMember[m] = (nearTermByMember[m]||0) + nearTermPts(i);
+    });
+  });
+  const overloadedMembers = MEMBERS.filter(m=>nearTermByMember[m]>=CAP_THRESHOLD);
+  const slipping = active.filter(i=>{
+    if(!i.dateCurr) return false;
+    return new Date(i.dateCurr) < today && i.status!=='Completed';
+  });
+  const decelerating = active.filter(i=>{
+    const n = lastNote(i);
+    return n && n.rag==='amber';
+  });
+  const overdueActions = active.filter(i=>{
+    if(hasUpdateThisWeek(i)) return false;
+    const n = lastNote(i);
+    return n && n.nextWeek && n.nextWeek.trim() && !hasUpdateThisWeek(i);
+  });
+
+  function cardHtml(ini, flagClass, meta) {
+    return `<div class="dash-card">
+      <div class="dash-flag ${flagClass}"></div>
+      <div class="dash-card-body">
+        <div class="dash-card-title">${ini.desc.length>80?ini.desc.slice(0,80)+'…':ini.desc}</div>
+        <div class="dash-card-meta">${meta}</div>
+        <div class="dash-card-badges">
+          ${ini.portco.split('|').map(p=>`<span class="badge badge-portco">${p}</span>`).join('')}
+          ${ini.member.split('|').map(m=>`<span class="badge badge-member">${m}</span>`).join('')}
+          <span class="badge ${statusBadgeClass(ini.status)}">${ini.status}</span>
+        </div>
+      </div>
+    </div>`;
+  }
+
+  function section(title, items, flagClass, metaFn, emptyMsg) {
+    return `<div class="dash-section-wrap">
+      <div class="dash-section-title">${title} <span style="color:#1a1a18;font-weight:600">(${items.length})</span></div>
+      ${items.length ? items.map(i=>cardHtml(i,flagClass,metaFn(i))).join('') : `<div class="dash-empty">${emptyMsg}</div>`}
+    </div>`;
+  }
+
+  const totalActive = active.length;
+  const totalEbitda = initiatives.filter(i=>i.ebitda).reduce((s,i)=>s+parseFloat(i.ebitda||0),0);
+
+  let html = `<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:1.5rem">
+    <div class="cap-card"><div class="cap-name" style="font-size:24px;font-weight:500">${totalActive}</div><div class="cap-counts">active initiatives</div></div>
+    <div class="cap-card"><div class="cap-name" style="font-size:24px;font-weight:500">${stalled.length}</div><div class="cap-counts">stalled (14d+)</div></div>
+    <div class="cap-card"><div class="cap-name" style="font-size:24px;font-weight:500">${decelerating.length}</div><div class="cap-counts">decelerating</div></div>
+    <div class="cap-card"><div class="cap-name" style="font-size:24px;font-weight:500">$${totalEbitda.toFixed(1)}M</div><div class="cap-counts">total EBITDA in flight</div></div>
+  </div>`;
+
+  if(overloadedMembers.length) {
+    html += `<div class="dash-section-wrap">
+      <div class="dash-section-title">Near-term capacity squeeze <span style="color:#1a1a18;font-weight:600">(${overloadedMembers.length})</span></div>
+      ${overloadedMembers.map(m=>`<div class="dash-card">
+        <div class="dash-flag dash-flag-amber"></div>
+        <div class="dash-card-body">
+          <div class="dash-card-title">${m} — ${nearTermByMember[m]} pts in next 2 weeks (threshold: ${CAP_THRESHOLD})</div>
+          <div class="dash-card-meta">Consider redistributing or deferring lower-priority initiatives.</div>
+        </div>
+      </div>`).join('')}
+    </div>`;
+  }
+
+  html += section('Stalled — no update in 14+ days', stalled, 'dash-flag-red',
+    i=>`Last update: ${lastNote(i)?lastNote(i).date+' ('+Math.floor((today-new Date(lastNote(i).date))/86400000)+'d ago)':'never'}`,
+    'No stalled initiatives. Great.');
+
+  html += section('Slipping — past expected close date', slipping, 'dash-flag-red',
+    i=>`Expected close: ${i.dateCurr} · Status: ${i.status}`,
+    'No initiatives past their close date.');
+
+  html += section('Decelerating at last update', decelerating, 'dash-flag-amber',
+    i=>`Last logged: ${lastNote(i)?lastNote(i).date:'—'} · ${lastNote(i)&&lastNote(i).thisWeek?lastNote(i).thisWeek.slice(0,80):''}`,
+    'No decelerating initiatives.');
+
+  html += section('Overdue — planned actions not yet logged this week', overdueActions, 'dash-flag-blue',
+    i=>{ const n=lastNote(i); return n&&n.nextWeek?'Planned: '+n.nextWeek.slice(0,80)+'…':''; },
+    'All planned actions have been logged this week.');
+
+  content.innerHTML = html;
+}
+
+const EFFORT_MAP = {XS:1, S:2, M:3, L:4, XL:5};
+
+function renderImpact() {
+  const wrap = document.getElementById('impact-chart-wrap');
+  const legendEl = document.getElementById('impact-legend');
+  if(!wrap) return;
+
+  const portcoFilter = (document.getElementById('impact-filter-portco')||{}).value||'';
+  const statusFilter = (document.getElementById('impact-filter-status')||{}).value||'';
+
+  // Populate portco filter
+  const sel = document.getElementById('impact-filter-portco');
+  if(sel) {
+    const cur = sel.value;
+    sel.innerHTML = '<option value="">All companies</option>' + PORTCOS.map(p=>`<option${p===cur?' selected':''}>${p}</option>`).join('');
+  }
+
+  let data = initiatives.filter(i=>i.ebitda && i.effort);
+  if(portcoFilter) data = data.filter(i=>i.portco.split('|').includes(portcoFilter));
+  if(statusFilter) data = data.filter(i=>i.status===statusFilter);
+
+  if(!data.length) {
+    wrap.innerHTML = '<div class="empty-state" style="padding-top:80px">No initiatives with both EBITDA impact and effort estimate set.</div>';
+    legendEl.innerHTML = '';
+    return;
+  }
+
+  const W = wrap.offsetWidth || 680;
+  const H = 400;
+  const PAD = {top:20, right:30, bottom:50, left:60};
+  const chartW = W - PAD.left - PAD.right;
+  const chartH = H - PAD.top - PAD.bottom;
+
+  const maxEbitda = Math.max(...data.map(i=>parseFloat(i.ebitda)));
+  const effortVals = [1,2,3,4,5];
+
+  function xPos(effort) {
+    const v = EFFORT_MAP[effort]||1;
+    return PAD.left + ((v-1)/(5-1)) * chartW;
+  }
+  function yPos(ebitda) {
+    return PAD.top + chartH - (parseFloat(ebitda)/maxEbitda) * chartH;
+  }
+  function bubbleR(ebitda) {
+    return Math.max(14, Math.min(44, (parseFloat(ebitda)/maxEbitda)*42+10));
+  }
+
+  const RAG_COLORS = {green:'#5a8a2f', amber:'#c07a10', steady:'#888'};
+  const RAG_STROKE = {green:'#3d6020', amber:'#8a5208', steady:'#555'};
+
+  // Build SVG
+  let svg = `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%;overflow:visible">`;
+
+  // Grid lines + Y axis labels
+  const yTicks = 4;
+  for(let i=0;i<=yTicks;i++) {
+    const val = (maxEbitda/yTicks*i).toFixed(1);
+    const y = PAD.top + chartH - (i/yTicks)*chartH;
+    svg += `<line x1="${PAD.left}" y1="${y}" x2="${PAD.left+chartW}" y2="${y}" stroke="#e8e7df" stroke-width="1"/>`;
+    svg += `<text x="${PAD.left-8}" y="${y+4}" text-anchor="end" font-size="11" fill="#888">$${val}M</text>`;
+  }
+
+  // X axis labels
+  ['XS','S','M','L','XL'].forEach((label,i)=>{
+    const x = PAD.left + (i/4)*chartW;
+    svg += `<text x="${x}" y="${PAD.top+chartH+18}" text-anchor="middle" font-size="11" fill="#888">${label}</text>`;
+  });
+
+  // Axis titles
+  svg += `<text x="${PAD.left+chartW/2}" y="${H-4}" text-anchor="middle" font-size="12" fill="#888">Effort</text>`;
+  svg += `<text x="13" y="${PAD.top+chartH/2}" text-anchor="middle" font-size="12" fill="#888" transform="rotate(-90,13,${PAD.top+chartH/2})">EBITDA impact</text>`;
+
+  // Axis lines
+  svg += `<line x1="${PAD.left}" y1="${PAD.top}" x2="${PAD.left}" y2="${PAD.top+chartH}" stroke="#d0cfc7" stroke-width="1"/>`;
+  svg += `<line x1="${PAD.left}" y1="${PAD.top+chartH}" x2="${PAD.left+chartW}" y2="${PAD.top+chartH}" stroke="#d0cfc7" stroke-width="1"/>`;
+
+  // Bubbles — draw in order of size so small ones aren't hidden
+  const sorted = [...data].sort((a,b)=>parseFloat(b.ebitda)-parseFloat(a.ebitda));
+  sorted.forEach((ini,idx)=>{
+    const x = xPos(ini.effort);
+    const y = yPos(parseFloat(ini.ebitda));
+    const r = bubbleR(parseFloat(ini.ebitda));
+    const col = RAG_COLORS[ini.rag]||'#888';
+    const stroke = RAG_STROKE[ini.rag]||'#555';
+    const label = ini.desc.length>18 ? ini.desc.slice(0,18)+'…' : ini.desc;
+    const portcos = ini.portco.split('|').join(', ');
+    svg += `<circle cx="${x}" cy="${y}" r="${r}" fill="${col}" fill-opacity="0.72" stroke="${stroke}" stroke-width="1.5"/>`;
+    svg += `<text x="${x}" y="${y+3}" text-anchor="middle" font-size="9" fill="#fff" font-weight="500">${label}</text>`;
+  });
+
+  svg += '</svg>';
+  wrap.innerHTML = svg;
+
+  // Legend
+  legendEl.innerHTML = [
+    ['green','#5a8a2f','Accelerating'],
+    ['amber','#c07a10','Decelerating'],
+    ['steady','#888','Steady']
+  ].map(([,col,label])=>`<div style="display:flex;align-items:center;gap:5px;font-size:11px;color:#888"><div style="width:10px;height:10px;border-radius:50%;background:${col};opacity:.8"></div>${label}</div>`).join('');
+}
+
+
+function populateSummaryWeeks() {
+  const sel = document.getElementById('summary-week-sel');
+  if(!sel) return;
+  const weeks = [...new Set(initiatives.flatMap(i=>(i.notes||[]).map(n=>n.date)))].sort().reverse();
+  const mondays = getMondayOptions().map(m=>m.iso);
+  const all = [...new Set([...mondays, ...weeks])].sort().reverse();
+  const cur = sel.value;
+  sel.innerHTML = all.map(w=>`<option value="${w}"${w===cur?' selected':''}>${w}</option>`).join('');
+  if(!sel.value && all.length) sel.value = all[0];
+}
+
+function renderSummary() {
+  populateSummaryWeeks();
+  const content = document.getElementById('summary-content');
+  if(!content) return;
+  const week = (document.getElementById('summary-week-sel')||{}).value;
+  if(!week) { content.innerHTML = '<div class="empty-state">No weeks with logged updates yet.</div>'; return; }
+
+  const today = new Date(); today.setHours(0,0,0,0);
+  const notes = initiatives.flatMap(ini =>
+    (ini.notes||[])
+      .filter(n=>n.date===week)
+      .map(n=>({...n, ini}))
+  );
+
+  if(!notes.length) {
+    content.innerHTML = '<div class="empty-state">No updates logged for this week.</div>';
+    return;
+  }
+
+  // Group by portco
+  const portcoMap = {};
+  notes.forEach(n=>{
+    const portcos = n.ini.portco.split('|');
+    portcos.forEach(p=>{
+      if(!portcoMap[p]) portcoMap[p]=[];
+      portcoMap[p].push(n);
+    });
+  });
+
+  let html = `<div style="background:#f8f8f5;border:1px solid #e8e7df;border-radius:10px;padding:14px;margin-bottom:1rem;font-size:12px;color:#888">
+    Raw data for week of <strong style="color:#1a1a18">${week}</strong> · ${notes.length} update${notes.length!==1?'s':''} across ${Object.keys(portcoMap).length} compan${Object.keys(portcoMap).length!==1?'ies':'y'}
+    · Click Generate to produce a shareable narrative.
+  </div>`;
+
+  Object.entries(portcoMap).sort(([a],[b])=>a.localeCompare(b)).forEach(([portco, pNotes])=>{
+    html += `<div style="margin-bottom:1rem;background:#fff;border:1px solid #e0dfd7;border-radius:10px;padding:14px">
+      <div style="font-size:13px;font-weight:500;margin-bottom:8px">${portco}</div>`;
+    pNotes.forEach(n=>{
+      const stale = Math.floor((today - new Date(n.date))/86400000) >= 14;
+      html += `<div style="margin-bottom:8px;padding-bottom:8px;border-bottom:1px solid #f0efe8">
+        <div style="font-size:11px;color:#888;margin-bottom:3px">${n.ini.desc.length>60?n.ini.desc.slice(0,60)+'…':n.ini.desc} · ${n.loggedBy||'?'} · <span class="badge ${statusBadgeClass(n.status||n.ini.status)}" style="font-size:10px">${n.status||n.ini.status}</span>${n.rag==='amber'?' · <span style="color:#c07a10;font-size:10px">↓ Decelerating</span>':''}${stale?' · <span style="color:#b83333;font-size:10px">Stalled</span>':''}</div>
+        ${n.thisWeek?`<div style="font-size:12px;margin-bottom:2px"><strong>This week:</strong> ${n.thisWeek}</div>`:''}
+        ${n.nextWeek?`<div style="font-size:12px;color:#555"><strong>Next week:</strong> ${n.nextWeek}</div>`:''}
+      </div>`;
+    });
+    html += `</div>`;
+  });
+
+  html += `<div id="generated-summary"></div>`;
+  content.innerHTML = html;
+}
+
+async function generateSummary() {
+  const week = (document.getElementById('summary-week-sel')||{}).value;
+  const today = new Date(); today.setHours(0,0,0,0);
+
+  const notes = initiatives.flatMap(ini =>
+    (ini.notes||[])
+      .filter(n=>n.date===week)
+      .map(n=>({...n, ini}))
+  );
+
+  if(!notes.length) { showToast('No updates logged for this week.'); return; }
+
+  const genEl = document.getElementById('generated-summary');
+  if(!genEl) return;
+  genEl.innerHTML = `<div style="background:#f8f8f5;border:1px solid #e8e7df;border-radius:10px;padding:14px;margin-top:1rem;font-size:13px;color:#888">Generating summary…</div>`;
+
+  // Build structured context for Claude
+  const portcoMap = {};
+  notes.forEach(n=>{
+    n.ini.portco.split('|').forEach(p=>{
+      if(!portcoMap[p]) portcoMap[p]=[];
+      portcoMap[p].push(n);
+    });
+  });
+
+  let context = `Week of ${week}. CoOp team weekly activities by portfolio company:\n\n`;
+  Object.entries(portcoMap).sort(([a],[b])=>a.localeCompare(b)).forEach(([portco, pNotes])=>{
+    context += `${portco}:\n`;
+    pNotes.forEach(n=>{
+      const lastNoteDate = n.ini.notes && n.ini.notes.length ? n.ini.notes[n.ini.notes.length-1].date : null;
+      const daysSince = lastNoteDate ? Math.floor((today - new Date(lastNoteDate))/86400000) : 999;
+      const stalled = daysSince >= 14;
+      context += `  - Initiative: ${n.ini.desc}\n`;
+      context += `    VCP type: ${n.ini.vcp} | Status: ${n.status||n.ini.status} | Pacing: ${ragLabel(n.rag||n.ini.rag)}`;
+      if(n.rag==='amber' || n.ini.rag==='amber') context += ' [DECELERATING]';
+      if(stalled) context += ' [STALLED]';
+      context += `\n`;
+      if(n.thisWeek) context += `    This week: ${n.thisWeek}\n`;
+      if(n.nextWeek) context += `    Next week: ${n.nextWeek}\n`;
+    });
+    context += `\n`;
+  });
+
+  const prompt = `You are helping the operations team of a private equity firm communicate their weekly activities to firm leadership and limited partners.
+
+Below is the raw weekly update data from the CoOp (operations) team, organized by portfolio company. Write a clean, professional, concise narrative summary (1-2 paragraphs per portfolio company) suitable for sharing with the firm. 
+
+Guidelines:
+- Use plain business English — no jargon, no bullet points in the output
+- Group by portfolio company with a bold company name header
+- Briefly describe what was accomplished this week and what is planned next week
+- Flag any initiatives marked DECELERATING or STALLED with a brief note that attention may be needed
+- Keep the tone factual and forward-looking
+- Total length should be readable in 2-3 minutes
+
+Raw data:
+${context}`;
+
+  try {
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-6',
+        max_tokens: 1000,
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+    const data = await response.json();
+    const text = data.content && data.content[0] ? data.content[0].text : 'Could not generate summary.';
+
+    genEl.innerHTML = `
+      <div style="background:#fff;border:1px solid #e0dfd7;border-radius:10px;padding:18px;margin-top:1rem">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+          <div style="font-size:13px;font-weight:500">Generated summary — week of ${week}</div>
+          <button class="btn btn-sm" onclick="copySummary()" id="copy-btn"><i class="ti ti-copy"></i> Copy</button>
+        </div>
+        <div id="summary-text" style="font-size:13px;line-height:1.8;color:#1a1a18;white-space:pre-wrap">${text}</div>
+      </div>`;
+  } catch(e) {
+    genEl.innerHTML = `<div style="background:#fff;border:1px solid #f0c0c0;border-radius:10px;padding:14px;margin-top:1rem;font-size:13px;color:#b83333">Could not generate summary: ${e.message}</div>`;
+  }
+}
+
+function copySummary() {
+  const el = document.getElementById('summary-text');
+  if(!el) return;
+  navigator.clipboard.writeText(el.textContent).then(()=>{
+    const btn = document.getElementById('copy-btn');
+    if(btn) { btn.innerHTML = '<i class="ti ti-check"></i> Copied'; setTimeout(()=>{ btn.innerHTML = '<i class="ti ti-copy"></i> Copy'; },2000); }
+  });
+}
+
+
+function renderSettings() {
+  [['sl-portcos', PORTCOS, 'portcos'], ['sl-members', MEMBERS, 'members'], ['sl-vendors', VENDORS, 'vendors'], ['sl-vcptypes', VCP_TYPES, 'vcptypes']].forEach(([elId, list, key]) => {
+    const el = document.getElementById(elId);
+    if(!el) return;
+    if(!list.length) { el.innerHTML = '<div class="sl-empty">None yet.</div>'; return; }
+    el.innerHTML = list.map(v=>`
+      <div class="sl-item">
+        <span>${v}</span>
+        <button class="sl-remove" onclick="removeSetting('${key}','${v}')" title="Remove"><i class="ti ti-x"></i></button>
+      </div>`).join('');
+  });
+}
+
+function addVendorInline() {
+  const val = prompt('New vendor name:');
+  if(!val || !val.trim()) return;
+  const trimmed = val.trim();
+  if(VENDORS.includes(trimmed)) { showToast('Already exists'); return; }
+  VENDORS.push(trimmed);
+  saveSettings();
+  buildModalLists();
+  // Auto-select the new vendor
+  setTimeout(()=>{
+    const el = document.querySelector(`#f-vendors .mc-item[data-value="${trimmed}"]`);
+    if(el) el.classList.add('checked');
+  }, 100);
+}
+
+function openAddSetting(key) {
+  const label = key==='portcos' ? 'portfolio company' : key==='members' ? 'CoOp member' : key==='vcptypes' ? 'VCP type' : 'vendor';
+  const val = prompt(`Add new ${label}:`);
+  if(!val || !val.trim()) return;
+  const trimmed = val.trim();
+  if(key==='portcos') { if(PORTCOS.includes(trimmed)){showToast('Already exists');return;} PORTCOS.push(trimmed); }
+  if(key==='members') { if(MEMBERS.includes(trimmed)){showToast('Already exists');return;} MEMBERS.push(trimmed); }
+  if(key==='vendors') { if(VENDORS.includes(trimmed)){showToast('Already exists');return;} VENDORS.push(trimmed); }
+  if(key==='vcptypes') { if(VCP_TYPES.includes(trimmed)){showToast('Already exists');return;} VCP_TYPES.push(trimmed); }
+  saveSettings();
+}
+
+function removeSetting(key, val) {
+  if(!confirm(`Remove "${val}"? This won't affect existing initiatives.`)) return;
+  if(key==='portcos') PORTCOS = PORTCOS.filter(v=>v!==val);
+  if(key==='members') MEMBERS = MEMBERS.filter(v=>v!==val);
+  if(key==='vendors') VENDORS = VENDORS.filter(v=>v!==val);
+  if(key==='vcptypes') VCP_TYPES = VCP_TYPES.filter(v=>v!==val);
+  saveSettings();
+}
+
+async function saveSettings() {
+  await api(null, { action: 'saveSettings', portcos: PORTCOS, members: MEMBERS, vendors: VENDORS, vcptypes: VCP_TYPES });
+  showToast('Settings saved');
+  renderSettings();
+}
+
+// On first load show picker if no user set, otherwise load directly
+if(!getCurrentUser()) {
+  // Load data first to get MEMBERS from Settings, then show picker
+  loadData().then(()=> { if(!getCurrentUser()) showUserPicker(); });
+} else {
+  loadData();
+}
+</script>
+</body>
+</html>
